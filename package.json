@@ -1,0 +1,15 @@
+{
+    "name": "synthetix-ai-starter",
+    "version": "1.0.0",
+    "description": "Production-ready AI SaaS Starter Kit",
+    "scripts": {
+        "dev:all": "concurrently \"npm run dev --prefix frontend\" \"npm run dev --prefix backend\"",
+        "install:all": "npm install --prefix frontend && npm install --prefix backend && npm install --prefix database && npm install",
+        "setup": "node scripts/interactive-setup.js",
+        "db:push": "npm run db:push --prefix database",
+        "db:seed": "npm run db:seed --prefix database"
+    },
+    "devDependencies": {
+        "concurrently": "^8.2.2"
+    }
+}

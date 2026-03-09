@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum SubscriptionTier {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+model User {
+  id             String        @id @default(cuid())
+  email          String        @unique
+  passwordHash   String?       // Null if OAuth is used
+  name           String?
+  role           Role          @default(USER)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  subscription   Subscription?
+  apiRequests    ApiRequest[]
+}
+
+model Subscription {
+  id                   String           @id @default(cuid())
+  userId               String           @unique
+  user                 User             @relation(fields: [userId], references: [id])
+  stripeCustomerId     String?          @unique
+  stripeSubscriptionId String?          @unique
+  tier                 SubscriptionTier @default(FREE)
+  status               String           @default("active") // active, canceled, past_due
+  currentPeriodEnd     DateTime?
+  monthlyTokenLimit    Int              @default(10000)
+  tokensUsed           Int              @default(0)
+  updatedAt            DateTime         @updatedAt
+}
+
+model ApiRequest {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  endpoint      String   // e.g., "/ai/generate"
+  tokensUsed    Int
+  promptSummary String?  // Optional: For user history dashboard
+  createdAt     DateTime @default(now())
+}

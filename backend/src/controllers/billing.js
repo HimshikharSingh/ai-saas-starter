@@ -1,0 +1,112 @@
+"use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.handleWebhook = exports.createPortalSession = exports.createCheckoutSession = void 0;
+const express_1 = require("express");
+const stripe_1 = __importDefault(require("stripe"));
+const database_1 = require("database");
+const stripe = new stripe_1.default(process.env.STRIPE_SECRET_KEY || 'sk_test_build', {
+    apiVersion: '2023-10-16',
+});
+const createCheckoutSession = async (req, res) => {
+    try {
+        const userId = req.user?.userId;
+        const { priceId } = req.body;
+        if (!userId)
+            return res.status(401).json({ error: 'Unauthorized' });
+        const user = await database_1.prisma.user.findUnique({ where: { id: userId } });
+        if (!user)
+            return res.status(404).json({ error: 'User not found' });
+        const session = await stripe.checkout.sessions.create({
+            payment_method_types: ['card'],
+            mode: 'subscription',
+            line_items: [{ price: priceId, quantity: 1 }],
+            client_reference_id: userId,
+            customer_email: user.email,
+            success_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard?success=true`,
+            cancel_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard?canceled=true`,
+        });
+        res.status(200).json({ checkoutUrl: session.url });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to create checkout session' });
+    }
+};
+exports.createCheckoutSession = createCheckoutSession;
+const createPortalSession = async (req, res) => {
+    try {
+        const userId = req.user?.userId;
+        if (!userId)
+            return res.status(401).json({ error: 'Unauthorized' });
+        const subscription = await database_1.prisma.subscription.findUnique({ where: { userId } });
+        if (!subscription?.stripeCustomerId) {
+            return res.status(400).json({ error: 'No active Stripe customer found.' });
+        }
+        const portalSession = await stripe.billingPortal.sessions.create({
+            customer: subscription.stripeCustomerId,
+            return_url: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard`,
+        });
+        res.status(200).json({ portalUrl: portalSession.url });
+    }
+    catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Failed to create portal session' });
+    }
+};
+exports.createPortalSession = createPortalSession;
+const handleWebhook = async (req, res) => {
+    const sig = req.headers['stripe-signature'];
+    let event;
+    try {
+        event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET || 'whsec_test');
+    }
+    catch (err) {
+        console.error('Webhook signature verification failed:', err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+    try {
+        switch (event.type) {
+            case 'checkout.session.completed': {
+                const session = event.data.object;
+                const userId = session.client_reference_id;
+                const subscriptionId = session.subscription;
+                const customerId = session.customer;
+                if (userId) {
+                    await database_1.prisma.subscription.update({
+                        where: { userId },
+                        data: {
+                            stripeCustomerId: customerId,
+                            stripeSubscriptionId: subscriptionId,
+                            tier: 'PRO',
+                            monthlyTokenLimit: 100000,
+                            status: 'active',
+                        }
+                    });
+                }
+                break;
+            }
+            case 'customer.subscription.deleted': {
+                const subscription = event.data.object;
+                await database_1.prisma.subscription.updateMany({
+                    where: { stripeSubscriptionId: subscription.id },
+                    data: {
+                        status: 'canceled',
+                        tier: 'FREE',
+                        monthlyTokenLimit: 10000
+                    }
+                });
+                break;
+            }
+        }
+    }
+    catch (error) {
+        console.error('Error processing webhook:', error);
+        return res.status(500).json({ error: 'Webhook handler failed' });
+    }
+    res.status(200).json({ received: true });
+};
+exports.handleWebhook = handleWebhook;
+//# sourceMappingURL=billing.js.map
