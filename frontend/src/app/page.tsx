@@ -47,9 +47,11 @@ export default function Home() {
                 Start Building Free
               </Button>
             </Link>
-            <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-neutral-700 bg-black/50 backdrop-blur-md hover:bg-neutral-800 text-neutral-300 rounded-full font-medium">
-              View Documentation
-            </Button>
+            <Link href="https://github.com/HimshikharSingh/ai-saas-starter" target="_blank">
+              <Button size="lg" variant="outline" className="h-14 px-8 text-lg border-neutral-700 bg-black/50 backdrop-blur-md hover:bg-neutral-800 text-neutral-300 rounded-full font-medium transition-all hover:scale-105">
+                View GitHub Repo
+              </Button>
+            </Link>
           </div>
         </div>
 
@@ -63,13 +65,36 @@ export default function Home() {
               <div className="w-3 h-3 rounded-full bg-green-500/80" />
             </div>
           </div>
-          <div className="p-8 aspect-video flex flex-col opacity-60">
-            <div className="w-1/3 h-8 bg-white/5 rounded-md mb-8" />
-            <div className="flex gap-6 h-full">
-              <div className="w-2/3 h-full bg-white/5 rounded-lg border border-white/5" />
+          <div className="p-8 aspect-video flex flex-col">
+            <div className="w-fit h-8 bg-gradient-to-r from-blue-500/20 to-violet-500/20 rounded-md mb-8 flex items-center px-4 border border-blue-500/20">
+              <span className="text-blue-400 text-sm font-semibold tracking-wider">SYNTHETIX NEURAL ENGINE</span>
+            </div>
+            <div className="flex gap-6 h-full text-left">
+              <div className="w-2/3 h-full bg-white/5 rounded-lg border border-white/5 p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/10 blur-[50px] rounded-full pointer-events-none" />
+                <h3 className="text-white font-medium mb-4">API Configuration</h3>
+                <div className="space-y-4">
+                  <div className="w-full h-12 bg-black/40 rounded border border-white/10 flex items-center px-4">
+                    <span className="text-neutral-500 text-sm font-mono">sk_live_synthetix_...</span>
+                  </div>
+                  <div className="w-3/4 h-12 bg-black/40 rounded border border-white/10 flex items-center px-4">
+                    <span className="text-neutral-500 text-sm font-mono">https://api.openai.com/v1</span>
+                  </div>
+                </div>
+              </div>
               <div className="w-1/3 h-full flex flex-col gap-6">
-                <div className="h-1/2 w-full bg-blue-500/10 border border-blue-500/20 rounded-lg" />
-                <div className="h-1/2 w-full bg-white/5 border border-white/5 rounded-lg" />
+                <div className="h-1/2 w-full bg-gradient-to-br from-blue-500/10 to-violet-500/10 border border-blue-500/20 rounded-lg p-6 flex flex-col justify-between text-left">
+                  <span className="text-neutral-400 text-sm">Compute Tokens</span>
+                  <span className="text-4xl font-bold tracking-tighter text-white">84.2K</span>
+                  <div className="w-full h-2 bg-blue-900/50 rounded-full overflow-hidden mt-4">
+                    <div className="w-3/4 h-full bg-blue-500 rounded-full" />
+                  </div>
+                </div>
+                <div className="h-1/2 w-full bg-white/5 border border-white/5 rounded-lg p-6 flex flex-col justify-between text-left">
+                  <span className="text-neutral-400 text-sm">Stripe MRR</span>
+                  <span className="text-3xl font-bold tracking-tighter text-green-400">$4,290</span>
+                  <span className="text-green-500/50 text-xs">+12.5% this month</span>
+                </div>
               </div>
             </div>
           </div>
